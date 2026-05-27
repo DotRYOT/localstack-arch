@@ -11,7 +11,7 @@ NC='\033[0m'
 ui_header() {
     echo -e "\n${CYAN}${BOLD}╔══════════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}${BOLD}║$(printf "%${#1}s" | sed 's/ / /g')${NC}"
-    echo -e "${CYAN}${BOLD}║ ${1} ║${NC}"
+    echo -e "${CYAN}${BOLD}║ ${1}                                                     ║${NC}"
     echo -e "${CYAN}${BOLD}╚══════════════════════════════════════════════════════════╝${NC}\n"
 }
 
@@ -56,8 +56,8 @@ sudo pacman -Sy --noconfirm --quiet > /dev/null 2>&1 || true
 # 2/6 Install
 ui_step 2 "Installing core packages..."
 sudo pacman -S --noconfirm --quiet apache php php-fpm mariadb phpmyadmin \
-    php-gd php-mysql php-intl php-xml php-zip php-mbstring php-curl \
-    php-bcmath php-tokenizer php-phar php-fileinfo > /dev/null 2>&1
+php-gd php-mysql php-intl php-xml php-zip php-mbstring php-curl \
+php-bcmath php-tokenizer php-phar php-fileinfo > /dev/null 2>&1
 
 # 3/6 Apache + PHP-FPM
 ui_step 3 "Configuring Apache & PHP-FPM..."
@@ -72,7 +72,7 @@ DirectoryIndex index.php index.html
 EOF
 
 grep -q "Include conf/extra/php.conf" /etc/httpd/conf/httpd.conf || \
-    echo "Include conf/extra/php.conf" | sudo tee -a /etc/httpd/conf/httpd.conf > /dev/null
+echo "Include conf/extra/php.conf" | sudo tee -a /etc/httpd/conf/httpd.conf > /dev/null
 
 # 4/6 MariaDB
 ui_step 4 "Initializing MariaDB..."
@@ -84,7 +84,7 @@ sudo mariadb-secure-installation || true
 # 5/6 phpMyAdmin
 ui_step 5 "Configuring phpMyAdmin..."
 [ ! -f /etc/webapps/phpMyAdmin/config.inc.php ] && \
-    sudo cp /etc/webapps/phpMyAdmin/config.sample.inc.php /etc/webapps/phpMyAdmin/config.inc.php
+sudo cp /etc/webapps/phpMyAdmin/config.sample.inc.php /etc/webapps/phpMyAdmin/config.inc.php
 
 if grep -q "\$cfg\['blowfish_secret'\] = ''" /etc/webapps/phpMyAdmin/config.inc.php 2>/dev/null; then
     SECRET=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
@@ -102,7 +102,7 @@ Alias /phpmyadmin "/usr/share/webapps/phpMyAdmin"
 EOF
 
 grep -q "Include conf/extra/phpmyadmin.conf" /etc/httpd/conf/httpd.conf || \
-    echo "Include conf/extra/phpmyadmin.conf" | sudo tee -a /etc/httpd/conf/httpd.conf > /dev/null
+echo "Include conf/extra/phpmyadmin.conf" | sudo tee -a /etc/httpd/conf/httpd.conf > /dev/null
 
 # 6/6 Start Services
 ui_step 6 "Starting services..."
