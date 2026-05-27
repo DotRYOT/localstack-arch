@@ -1,4 +1,5 @@
 # localstack-arch
+
 > A terminal-first, XAMPP-style local PHP stack for Arch Linux and CachyOS.  
 > Apache • PHP-FPM • MariaDB • phpMyAdmin • Interactive CLI dashboard
 
@@ -10,6 +11,7 @@
 > ⚠️ Disclaimer: This is an AI-assisted project.
 
 ## ✨ Features
+
 - 🚀 **One-command setup** – Installs & configures Apache, PHP 8.x (PHP-FPM), MariaDB, and phpMyAdmin
 - 🖥️ **Interactive TUI dashboard** – Manage services, inspect logs, fix permissions, and scaffold test projects without leaving the terminal
 - ⚡ **Modern PHP Handler** – Uses PHP-FPM instead of legacy `mod_php` (faster, lower memory, isolated pools)
@@ -18,6 +20,7 @@
 - 🛠️ **Zero external dependencies** – Pure Bash + standard Arch utilities
 
 ## 📋 Prerequisites
+
 - Arch Linux or CachyOS (rolling release)
 - `sudo` access for a regular user
 - Active internet connection for `pacman` downloads
@@ -27,10 +30,14 @@
 ```bash
 # 1. Download the script
 curl -sSL https://raw.githubusercontent.com/DotRYOT/localstack-arch/main/setup-xampp-ui.sh -o localstack-arch.sh
+```
 
+```bash
 # 2. Make it executable
 chmod +x localstack-arch.sh
+```
 
+```bash
 # 3. Run it
 ./localstack-arch.sh
 ```
@@ -52,10 +59,10 @@ After installation, the script launches a persistent CLI menu.
 
 ## 🌐 Accessing Your Stack
 
-| Service | URL | Credentials |
-| --- | --- | --- |
-| Apache Web Server | http://localhost | N/A |
-| phpMyAdmin | http://localhost/phpmyadmin | `root` + password set during setup |
+| Service           | URL                         | Credentials                        |
+| ----------------- | --------------------------- | ---------------------------------- |
+| Apache Web Server | http://localhost            | N/A                                |
+| phpMyAdmin        | http://localhost/phpmyadmin | `root` + password set during setup |
 
 ## 📁 Paths & Permissions
 
