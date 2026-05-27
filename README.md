@@ -27,18 +27,21 @@
 
 ## 🛠️ Installation & Usage
 
+1. Download the script
+
 ```bash
-# 1. Download the script
 curl -sSL https://raw.githubusercontent.com/DotRYOT/localstack-arch/main/setup-xampp-ui.sh -o localstack-arch.sh
 ```
 
+2. Make it executable
+
 ```bash
-# 2. Make it executable
 chmod +x localstack-arch.sh
 ```
 
+3. Run it
+
 ```bash
-# 3. Run it
 ./localstack-arch.sh
 ```
 
