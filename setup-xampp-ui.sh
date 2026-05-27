@@ -8,10 +8,15 @@ RED='\033[0;31m'    GREEN='\033[0;32m'   YELLOW='\033[1;33m'
 BLUE='\033[0;34m'   CYAN='\033[0;36m'    BOLD='\033[1m'
 NC='\033[0m'
 
+SCRIPT_REPO_URL="https://github.com/DotRYOT/localstack-arch"
+SCRIPT_RAW_URL="https://raw.githubusercontent.com/DotRYOT/localstack-arch/main/setup-xampp-ui.sh"
+STACK_PACKAGES=(apache php php-fpm mariadb phpmyadmin php-gd php-mysql php-intl php-xml php-zip php-mbstring php-curl php-bcmath php-tokenizer php-phar php-fileinfo)
+
 ui_header() {
     echo -e "\n${CYAN}${BOLD}╔══════════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}${BOLD}║$(printf "%${#1}s" | sed 's/ / /g')                            ║${NC}"
     echo -e "${CYAN}${BOLD}║ ${1}                           ║${NC}"
+    echo -e "${CYAN}${BOLD}║                                                          ║${NC}"
     echo -e "${CYAN}${BOLD}╚══════════════════════════════════════════════════════════╝${NC}\n"
 }
 
@@ -27,6 +32,118 @@ ui_info()    { echo -e "${YELLOW}ℹ  $1${NC}"; }
 ui_error()   { echo -e "${RED}❌ $1${NC}" >&2; }
 ui_divider() { echo -e "${CYAN}─────────────────────────────────────────────────────────────${NC}"; }
 
+self_update_script() {
+    local script_path tmp_file downloader
+
+    script_path=$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null || printf '%s' "$0")
+    tmp_file=$(mktemp)
+
+    if command -v curl >/dev/null 2>&1; then
+        downloader="curl -fsSL"
+    elif command -v wget >/dev/null 2>&1; then
+        downloader="wget -qO-"
+    else
+        ui_info "Skipping auto-update because neither curl nor wget is installed"
+        rm -f "$tmp_file"
+        return 0
+    fi
+
+    if ! eval "$downloader \"$SCRIPT_RAW_URL\"" > "$tmp_file" 2>/dev/null; then
+        ui_info "Skipping auto-update because the latest script could not be downloaded"
+        rm -f "$tmp_file"
+        return 0
+    fi
+
+    if cmp -s "$tmp_file" "$script_path"; then
+        rm -f "$tmp_file"
+        ui_info "Installer is already up to date"
+        return 0
+    fi
+
+    chmod --reference="$script_path" "$tmp_file" 2>/dev/null || chmod +x "$tmp_file"
+
+    if cp "$tmp_file" "$script_path" 2>/dev/null || sudo cp "$tmp_file" "$script_path"; then
+        rm -f "$tmp_file"
+        ui_info "Updated installer from $SCRIPT_REPO_URL"
+        exec "$script_path" "$@"
+    fi
+
+    rm -f "$tmp_file"
+    ui_info "Skipping auto-update because $script_path could not be replaced"
+}
+
+is_stack_installed() {
+    local package
+
+    for package in "${STACK_PACKAGES[@]}"; do
+        if pacman -Q "$package" >/dev/null 2>&1; then
+            return 0
+        fi
+    done
+
+    [ -f /etc/httpd/conf/extra/php.conf ] || [ -f /etc/httpd/conf/extra/phpmyadmin.conf ]
+}
+
+cleanup_stack_config() {
+    sudo rm -f /etc/httpd/conf/extra/php.conf /etc/httpd/conf/extra/phpmyadmin.conf
+    sudo sed -i '/^Include conf\/extra\/php\.conf$/d' /etc/httpd/conf/httpd.conf 2>/dev/null || true
+    sudo sed -i '/^Include conf\/extra\/phpmyadmin\.conf$/d' /etc/httpd/conf/httpd.conf 2>/dev/null || true
+}
+
+uninstall_stack() {
+    clear
+    ui_header "UNINSTALL XAMPP-LIKE STACK"
+    ui_info "This removes Apache, PHP, MariaDB, phpMyAdmin, and the extra config written by this script"
+    read -r -p "  ➤ Continue uninstall? [y/N]: " confirm
+
+    case "$confirm" in
+        [yY]|[yY][eE][sS]) ;;
+        *) ui_info "Uninstall cancelled"; return 0 ;;
+    esac
+
+    ui_step 1 "Stopping services..."
+    sudo systemctl disable --now httpd mariadb php-fpm > /dev/null 2>&1 || true
+
+    ui_step 2 "Removing generated configuration..."
+    cleanup_stack_config
+
+    ui_step 3 "Removing packages..."
+    sudo pacman -Rns --noconfirm "${STACK_PACKAGES[@]}" > /dev/null 2>&1 || true
+
+    ui_step 4 "Cleaning test project symlink..."
+    if [ -L /srv/http/test ]; then
+        sudo rm -f /srv/http/test
+    fi
+
+    ui_success "Stack removed"
+    exit 0
+}
+
+handle_existing_installation() {
+    local choice
+
+    if ! is_stack_installed; then
+        return 0
+    fi
+
+    clear
+    ui_header "EXISTING INSTALLATION DETECTED"
+    ui_info "This system already has parts of the localstack-arch stack installed"
+    echo -e "  1) ${BOLD}Reinstall / Repair${NC}"
+    echo -e "  2) ${BOLD}Uninstall Stack${NC}"
+    echo -e "  3) ${BOLD}Exit${NC}\n"
+
+    while true; do
+        read -r -p "  ➤ Select option [1-3]: " choice
+        case "$choice" in
+            1) return 0 ;;
+            2) uninstall_stack ;;
+            3) clear; ui_info "No changes made"; exit 0 ;;
+            *) echo -e "${RED}Invalid option. Try again.${NC}\n" ;;
+        esac
+    done
+}
+
 # ─────────────────────────────────────────────────────────────
 # 🔒 PRE-FLIGHT CHECKS
 # ─────────────────────────────────────────────────────────────
@@ -39,6 +156,9 @@ if ! command -v pacman &>/dev/null; then
     ui_error "This script requires cachyOS/Arch Linux (pacman not found)."
     exit 1
 fi
+
+self_update_script "$@"
+handle_existing_installation
 
 # ─────────────────────────────────────────────────────────────
 # 🚀 MAIN SETUP

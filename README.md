@@ -13,6 +13,8 @@
 ## ✨ Features
 
 - 🚀 **One-command setup** – Installs & configures Apache, PHP 8.x (PHP-FPM), MariaDB, and phpMyAdmin
+- 🔄 **Automatic installer update** – Downloads the latest `setup-xampp-ui.sh` from `DotRYOT/localstack-arch` each time you run it
+- 🧹 **Built-in uninstall option** – If the stack is already present, the script offers to remove the installed packages and generated config
 - 🖥️ **Interactive TUI dashboard** – Manage services, inspect logs, fix permissions, and scaffold test projects without leaving the terminal
 - ⚡ **Modern PHP Handler** – Uses PHP-FPM instead of legacy `mod_php` (faster, lower memory, isolated pools)
 - 🔒 **Secure by default** – Runs `mariadb-secure-installation`, configures socket-based PHP-FPM, and generates a random blowfish secret for phpMyAdmin
@@ -44,6 +46,10 @@ chmod +x localstack-arch.sh
 ```bash
 ./localstack-arch.sh
 ```
+
+Each run checks `https://raw.githubusercontent.com/DotRYOT/localstack-arch/main/setup-xampp-ui.sh` and replaces the local script if a newer version is available, then restarts with the updated copy. If the download fails or the script file is not writable, setup continues with the current version.
+
+If the script detects an existing localstack-arch install, it will prompt you to either reinstall/repair it or uninstall the stack entirely.
 
 ### ⚠️ Do not run as root. The script will prompt for sudo automatically.
 
@@ -94,6 +100,7 @@ sudo systemctl restart php-fpm
 - **Port 80 in use?** Run `sudo lsof -i :80` to find conflicts, or change `Listen 80` in `/etc/httpd/conf/httpd.conf`.
 - **MariaDB root login fails?** Run `sudo mysql_secure_installation` again, or reset via `sudo mysql` (no password on fresh install).
 - **phpMyAdmin "Configuration incomplete" warning?** The script auto-generates a `blowfish_secret`. Verify `/etc/webapps/phpMyAdmin/config.inc.php` exists and is not empty.
+- **Need to remove everything?** Run the installer again. If it detects the stack, choose the uninstall option.
 
 ### 🤝 Contributing
 
