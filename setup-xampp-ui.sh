@@ -10,8 +10,8 @@ NC='\033[0m'
 
 ui_header() {
     echo -e "\n${CYAN}${BOLD}╔══════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}${BOLD}║$(printf "%${#1}s" | sed 's/ / /g')${NC}"
-    echo -e "${CYAN}${BOLD}║ ${1}                                                     ║${NC}"
+    echo -e "${CYAN}${BOLD}║$(printf "%${#1}s" | sed 's/ / /g')                            ║${NC}"
+    echo -e "${CYAN}${BOLD}║ ${1}                           ║${NC}"
     echo -e "${CYAN}${BOLD}╚══════════════════════════════════════════════════════════╝${NC}\n"
 }
 
