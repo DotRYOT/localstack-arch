@@ -7,6 +7,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Bash](https://img.shields.io/badge/Bash-4EAA25?logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
 
+> ⚠️ Disclaimer: This is an AI-assisted project.
+
 ## ✨ Features
 - 🚀 **One-command setup** – Installs & configures Apache, PHP 8.x (PHP-FPM), MariaDB, and phpMyAdmin
 - 🖥️ **Interactive TUI dashboard** – Manage services, inspect logs, fix permissions, and scaffold test projects without leaving the terminal
