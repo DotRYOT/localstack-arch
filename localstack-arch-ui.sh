@@ -70,6 +70,60 @@ run_pacman() {
     fi
 }
 
+configure_phpmyadmin() {
+    local pma_etc_dir pma_share_dir pma_sample_config pma_config_file
+
+    if [ -d /etc/webapps/phpMyAdmin ]; then
+        pma_etc_dir="/etc/webapps/phpMyAdmin"
+    elif [ -d /etc/webapps/phpmyadmin ]; then
+        pma_etc_dir="/etc/webapps/phpmyadmin"
+    else
+        ui_error "phpMyAdmin config directory was not found under /etc/webapps"
+        return 1
+    fi
+
+    if [ -d /usr/share/webapps/phpMyAdmin ]; then
+        pma_share_dir="/usr/share/webapps/phpMyAdmin"
+    elif [ -d /usr/share/webapps/phpmyadmin ]; then
+        pma_share_dir="/usr/share/webapps/phpmyadmin"
+    else
+        ui_error "phpMyAdmin web directory was not found under /usr/share/webapps"
+        return 1
+    fi
+
+    pma_sample_config="$pma_etc_dir/config.sample.inc.php"
+    pma_config_file="$pma_etc_dir/config.inc.php"
+
+    if [ ! -f "$pma_config_file" ]; then
+        if [ -f "$pma_sample_config" ]; then
+            sudo cp "$pma_sample_config" "$pma_config_file"
+        else
+            sudo tee "$pma_config_file" > /dev/null << 'EOF'
+<?php
+$cfg['blowfish_secret'] = '';
+EOF
+        fi
+    fi
+
+    if grep -q "\$cfg\['blowfish_secret'\] = ''" "$pma_config_file" 2>/dev/null; then
+        SECRET=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
+        sudo sed -i "s/\$cfg\['blowfish_secret'\] = ''/\$cfg['blowfish_secret'] = '$SECRET'/" "$pma_config_file"
+    fi
+
+    sudo tee /etc/httpd/conf/extra/phpmyadmin.conf > /dev/null << EOF
+Alias /phpmyadmin "$pma_share_dir"
+<Directory "$pma_share_dir">
+    DirectoryIndex index.php
+    AllowOverride All
+    Options FollowSymLinks
+    Require all granted
+</Directory>
+EOF
+
+    grep -q "Include conf/extra/phpmyadmin.conf" /etc/httpd/conf/httpd.conf || \
+    echo "Include conf/extra/phpmyadmin.conf" | sudo tee -a /etc/httpd/conf/httpd.conf > /dev/null
+}
+
 setup_mariadb() {
     ui_info "Checking MariaDB data directory"
     if [ ! -d /var/lib/mysql/mysql ]; then
@@ -265,26 +319,7 @@ sudo mariadb-secure-installation || true
 
 # 5/6 phpMyAdmin
 ui_step 5 "Configuring phpMyAdmin..."
-[ ! -f /etc/webapps/phpMyAdmin/config.inc.php ] && \
-sudo cp /etc/webapps/phpMyAdmin/config.sample.inc.php /etc/webapps/phpMyAdmin/config.inc.php
-
-if grep -q "\$cfg\['blowfish_secret'\] = ''" /etc/webapps/phpMyAdmin/config.inc.php 2>/dev/null; then
-    SECRET=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
-    sudo sed -i "s/\$cfg\['blowfish_secret'\] = ''/\$cfg['blowfish_secret'] = '$SECRET'/" /etc/webapps/phpMyAdmin/config.inc.php
-fi
-
-sudo tee /etc/httpd/conf/extra/phpmyadmin.conf > /dev/null << 'EOF'
-Alias /phpmyadmin "/usr/share/webapps/phpMyAdmin"
-<Directory "/usr/share/webapps/phpMyAdmin">
-    DirectoryIndex index.php
-    AllowOverride All
-    Options FollowSymLinks
-    Require all granted
-</Directory>
-EOF
-
-grep -q "Include conf/extra/phpmyadmin.conf" /etc/httpd/conf/httpd.conf || \
-echo "Include conf/extra/phpmyadmin.conf" | sudo tee -a /etc/httpd/conf/httpd.conf > /dev/null
+configure_phpmyadmin
 
 # 6/6 Start Services
 ui_step 6 "Starting services..."
