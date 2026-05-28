@@ -32,6 +32,44 @@ ui_info()    { echo -e "${YELLOW}ℹ  $1${NC}"; }
 ui_error()   { echo -e "${RED}❌ $1${NC}" >&2; }
 ui_divider() { echo -e "${CYAN}─────────────────────────────────────────────────────────────${NC}"; }
 
+wait_for_pacman_lock() {
+    local waited=0
+    local lock_file="/var/lib/pacman/db.lck"
+
+    while sudo test -f "$lock_file"; do
+        if [ "$waited" -eq 0 ]; then
+            ui_info "pacman is locked by another process. Waiting up to 60 seconds..."
+        fi
+
+        if [ "$waited" -ge 60 ]; then
+            ui_error "pacman lock still present at $lock_file"
+            ui_info "Close other package managers and retry."
+            return 1
+        fi
+
+        sleep 1
+        waited=$((waited + 1))
+    done
+
+    return 0
+}
+
+run_pacman() {
+    local description="$1"
+    shift
+
+    if ! wait_for_pacman_lock; then
+        return 1
+    fi
+
+    ui_info "$description"
+    if ! sudo pacman "$@"; then
+        ui_error "pacman command failed: pacman $*"
+        ui_info "Check network/mirror status and any errors shown above, then rerun the script."
+        return 1
+    fi
+}
+
 self_update_script() {
     local script_path tmp_file downloader
 
@@ -108,7 +146,7 @@ uninstall_stack() {
     cleanup_stack_config
 
     ui_step 3 "Removing packages..."
-    sudo pacman -Rns --noconfirm "${STACK_PACKAGES[@]}" > /dev/null 2>&1 || true
+    run_pacman "Removing packages listed in localstack-arch" -Rns --noconfirm "${STACK_PACKAGES[@]}" || true
 
     ui_step 4 "Cleaning test project symlink..."
     if [ -L /srv/http/test ]; then
@@ -171,13 +209,13 @@ echo -e " ${BLUE}• phpMyAdmin (Web GUI)${NC}\n"
 
 # 1/6 Update
 ui_step 1 "Updating package database..."
-sudo pacman -Sy --noconfirm --quiet > /dev/null 2>&1 || true
+run_pacman "Refreshing package database" -Sy --noconfirm
 
 # 2/6 Install
 ui_step 2 "Installing core packages..."
-sudo pacman -S --noconfirm --quiet apache php php-fpm mariadb phpmyadmin \
+run_pacman "Installing required packages" -S --needed --noconfirm apache php php-fpm mariadb phpmyadmin \
 php-gd php-mysql php-intl php-xml php-zip php-mbstring php-curl \
-php-bcmath php-tokenizer php-phar php-fileinfo > /dev/null 2>&1
+php-bcmath php-tokenizer php-phar php-fileinfo
 
 # 3/6 Apache + PHP-FPM
 ui_step 3 "Configuring Apache & PHP-FPM..."
