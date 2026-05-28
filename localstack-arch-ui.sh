@@ -10,7 +10,7 @@ NC='\033[0m'
 
 SCRIPT_REPO_URL="https://github.com/DotRYOT/localstack-arch"
 SCRIPT_RAW_URL="https://raw.githubusercontent.com/DotRYOT/localstack-arch/main/setup-xampp-ui.sh"
-STACK_PACKAGES=(apache php php-fpm mariadb phpmyadmin php-gd php-mysql php-intl php-xml php-zip php-mbstring php-curl php-bcmath php-tokenizer php-phar php-fileinfo)
+STACK_PACKAGES=(apache php php-fpm mariadb phpmyadmin php-gd)
 
 ui_header() {
     echo -e "\n${CYAN}${BOLD}╔══════════════════════════════════════════════════════════╗${NC}"
@@ -213,9 +213,7 @@ run_pacman "Refreshing package database" -Sy --noconfirm
 
 # 2/6 Install
 ui_step 2 "Installing core packages..."
-run_pacman "Installing required packages" -S --needed --noconfirm apache php php-fpm mariadb phpmyadmin \
-php-gd php-mysql php-intl php-xml php-zip php-mbstring php-curl \
-php-bcmath php-tokenizer php-phar php-fileinfo
+run_pacman "Installing required packages" -S --needed --noconfirm "${STACK_PACKAGES[@]}"
 
 # 3/6 Apache + PHP-FPM
 ui_step 3 "Configuring Apache & PHP-FPM..."
