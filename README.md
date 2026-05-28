@@ -13,7 +13,7 @@
 ## ✨ Features
 
 - 🚀 **One-command setup** – Installs & configures Apache, PHP 8.x (PHP-FPM), MariaDB, and phpMyAdmin
-- 🔄 **Automatic installer update** – Downloads the latest `setup-xampp-ui.sh` from `DotRYOT/localstack-arch` each time you run it
+- 🔄 **Automatic installer update** – Downloads the latest `localstack-arch-ui.sh` from `DotRYOT/localstack-arch` each time you run it
 - 🧹 **Built-in uninstall option** – If the stack is already present, the script offers to remove the installed packages and generated config
 - 🖥️ **Interactive TUI dashboard** – Manage services, inspect logs, fix permissions, and scaffold test projects without leaving the terminal
 - ⚡ **Modern PHP Handler** – Uses PHP-FPM instead of legacy `mod_php` (faster, lower memory, isolated pools)
@@ -32,22 +32,22 @@
 1. Download the script
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/DotRYOT/localstack-arch/main/setup-xampp-ui.sh -o localstack-arch.sh
+curl -sSL https://raw.githubusercontent.com/DotRYOT/localstack-arch/main/localstack-arch-ui.sh -o localstack-arch-ui.sh
 ```
 
 2. Make it executable
 
 ```bash
-chmod +x localstack-arch.sh
+chmod +x localstack-arch-ui.sh
 ```
 
 3. Run it
 
 ```bash
-./localstack-arch.sh
+./localstack-arch-ui.sh
 ```
 
-Each run checks `https://raw.githubusercontent.com/DotRYOT/localstack-arch/main/setup-xampp-ui.sh` and replaces the local script if a newer version is available, then restarts with the updated copy. If the download fails or the script file is not writable, setup continues with the current version.
+Each run checks `https://raw.githubusercontent.com/DotRYOT/localstack-arch/main/localstack-arch-ui.sh` and replaces the local script if a newer version is available, then restarts with the updated copy. If the download fails or the script file is not writable, setup continues with the current version.
 
 If the script detects an existing localstack-arch install, it will prompt you to either reinstall/repair it or uninstall the stack entirely.
 
