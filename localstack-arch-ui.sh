@@ -9,7 +9,7 @@ BLUE='\033[0;34m'   CYAN='\033[0;36m'    BOLD='\033[1m'
 NC='\033[0m'
 
 SCRIPT_REPO_URL="https://github.com/DotRYOT/localstack-arch"
-SCRIPT_RAW_URL="https://raw.githubusercontent.com/DotRYOT/localstack-arch/main/setup-xampp-ui.sh"
+SCRIPT_RAW_URL="https://raw.githubusercontent.com/DotRYOT/localstack-arch/main/localstack-arch-ui.sh"
 STACK_PACKAGES=(apache php php-fpm mariadb phpmyadmin php-gd)
 
 ui_header() {
@@ -68,6 +68,32 @@ run_pacman() {
         ui_info "Check network/mirror status and any errors shown above, then rerun the script."
         return 1
     fi
+}
+
+setup_mariadb() {
+    ui_info "Checking MariaDB data directory"
+    if [ ! -d /var/lib/mysql/mysql ]; then
+        ui_info "Initializing MariaDB data directory (first run)"
+        if ! sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql; then
+            ui_error "Failed to initialize MariaDB data directory"
+            return 1
+        fi
+    fi
+
+    ui_info "Enabling and starting MariaDB service"
+    if ! sudo systemctl enable --now mariadb; then
+        ui_error "Could not start MariaDB service"
+        sudo journalctl -u mariadb --no-pager -n 30 || true
+        return 1
+    fi
+
+    if ! sudo systemctl is-active --quiet mariadb; then
+        ui_error "MariaDB service is not active after startup"
+        sudo journalctl -u mariadb --no-pager -n 30 || true
+        return 1
+    fi
+
+    return 0
 }
 
 self_update_script() {
@@ -232,7 +258,7 @@ echo "Include conf/extra/php.conf" | sudo tee -a /etc/httpd/conf/httpd.conf > /d
 
 # 4/6 MariaDB
 ui_step 4 "Initializing MariaDB..."
-sudo systemctl enable --now mariadb > /dev/null 2>&1
+setup_mariadb
 ui_info "Starting interactive security setup..."
 ui_info "Follow prompts to set root password & secure installation"
 sudo mariadb-secure-installation || true
