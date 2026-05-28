@@ -13,11 +13,11 @@ SCRIPT_RAW_URL="https://raw.githubusercontent.com/DotRYOT/localstack-arch/main/s
 STACK_PACKAGES=(apache php php-fpm mariadb phpmyadmin php-gd)
 
 ui_header() {
-    echo -e "\n${CYAN}${BOLD}╔══════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}${BOLD}║$(printf "%${#1}s" | sed 's/ / /g')                            ║${NC}"
-    echo -e "${CYAN}${BOLD}║ ${1}                           ║${NC}"
-    echo -e "${CYAN}${BOLD}║                                                          ║${NC}"
-    echo -e "${CYAN}${BOLD}╚══════════════════════════════════════════════════════════╝${NC}\n"
+    echo -e "\n${CYAN}${BOLD}╔════════════════════════════════╗${NC}"
+    echo -e "${CYAN}${BOLD}║$(printf "%${#1}s" | sed 's/ / /g') ║${NC}"
+    echo -e "${CYAN}${BOLD}║ ${1} ║${NC}"
+    echo -e "${CYAN}${BOLD}║                                ║${NC}"
+    echo -e "${CYAN}${BOLD}╚════════════════════════════════╝${NC}\n"
 }
 
 ui_step() {
